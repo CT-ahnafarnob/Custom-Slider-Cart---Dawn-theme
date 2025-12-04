@@ -1,4 +1,4 @@
-// assets/ct-slider-cart.js
+// assets/ct-slider-cart.js - UPDATED WITH IMAGES & MOBILE RESPONSIVE
 
 (function () {
   "use strict";
@@ -138,35 +138,51 @@
     }
 
     // Build HTML for each item - use index as line number
+    // Build HTML for each item - use index as line number
     const itemsHTML = items
       .map((item, index) => {
         const itemTotal = (item.price * item.quantity) / 100; // Convert cents to dollars
         const lineNumber = index + 1; // Shopify uses 1-based line numbers
 
+        // Get product image (fallback to placeholder if no image)
+        const imageUrl =
+          item.image ||
+          item.featured_image ||
+          "https://via.placeholder.com/80x80?text=No+Image";
+
         // Build properties HTML
         let propertiesHTML = "";
 
-        // Add variant options with proper labels
+        // Add variant options with proper labels (Size: XS, Color: Blue, etc)
         if (item.options_with_values && item.options_with_values.length > 0) {
           item.options_with_values.forEach((option) => {
-            propertiesHTML += `<span class="property"><strong>${option.name}:</strong> ${option.value}</span>`;
-          });
-        } else {
-        }
+            // Convert to lowercase for comparison
+            const nameLower = option.name.toLowerCase().trim();
+            const valueLower = option.value.toLowerCase().trim();
 
-        // Add custom properties if exist
-        if (item.properties && Object.keys(item.properties).length > 0) {
-          Object.entries(item.properties).forEach(([key, value]) => {
-            if (value) {
-              propertiesHTML += `<span class="property">${key}: ${value}</span>`;
+            // Skip if name is "default" OR value is "title" OR value is "default title"
+            if (
+              nameLower === "default" ||
+              valueLower === "title" ||
+              valueLower === "default title"
+            ) {
+              return; // Skip this option
             }
+
+            propertiesHTML += `<span class="property"><strong>${option.name}:</strong> ${option.value}</span>`;
           });
         }
 
         return `
-        <div class="cart-item" data-item-line="${lineNumber}" data-item-key="${
+    <div class="cart-item" data-item-line="${lineNumber}" data-item-key="${
           item.key
         }">
+      <div class="item-content">
+        <div class="item-image">
+          <img src="${imageUrl}" alt="${item.title}" />
+        </div>
+        
+        <div class="item-details">
           <div class="item-header">
             <h4>${item.title}</h4>
             <button class="remove-btn" data-item-line="${lineNumber}" type="button" title="Remove">×</button>
@@ -186,10 +202,12 @@
               }" readonly>
               <button class="qty-btn qty-plus" data-item-line="${lineNumber}" type="button">+</button>
             </div>
-            <span class="item-price">${itemTotal.toFixed(2)}</span>
+            <span class="item-price">$${itemTotal.toFixed(2)}</span>
           </div>
         </div>
-      `;
+      </div>
+    </div>
+  `;
       })
       .join("");
 
